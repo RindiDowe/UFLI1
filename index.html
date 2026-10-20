@@ -1,0 +1,454 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>First Grade Heart Word Heroes</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 20px;
+  background: #fff5fa;
+  font-family: Arial, sans-serif;
+  color: #292443;
+}
+
+.app {
+  max-width: 760px;
+  margin: 25px auto;
+  padding: 28px;
+  background: white;
+  border-radius: 25px;
+  box-shadow: 0 10px 35px #d8a6bc55;
+  text-align: center;
+}
+
+h1 {
+  color: #bd2360;
+  font-size: clamp(28px, 6vw, 44px);
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: #67576b;
+  font-size: 18px;
+}
+
+.grade {
+  display: inline-block;
+  background: #fce0ed;
+  color: #a51d56;
+  padding: 8px 18px;
+  border-radius: 25px;
+  font-weight: bold;
+}
+
+.choices, .controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border: 0;
+  border-radius: 14px;
+  padding: 14px 19px;
+  background: #bd2360;
+  color: white;
+  font-weight: bold;
+  min-height: 48px;
+}
+
+button:hover { filter: brightness(.94); }
+
+button:focus-visible,
+input:focus-visible {
+  outline: 4px solid #f6a900;
+  outline-offset: 3px;
+}
+
+.secondary { background: #6952a2; }
+
+.soft {
+  background: #f8e6f0;
+  color: #75234c;
+}
+
+.hidden { display: none !important; }
+
+.word {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: bold;
+  font-size: clamp(60px, 14vw, 110px);
+  letter-spacing: 2px;
+  color: #41215c;
+  margin: 20px 0;
+  overflow-wrap: anywhere;
+}
+
+.prompt { font-size: 20px; }
+
+.entry {
+  width: min(100%, 440px);
+  padding: 18px;
+  border: 4px solid #db8bb3;
+  border-radius: 18px;
+  text-align: center;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(32px, 8vw, 48px);
+  letter-spacing: 3px;
+}
+
+.entry.good {
+  border-color: #26a26d;
+  background: #effff5;
+}
+
+.progress {
+  height: 18px;
+  background: #f5e5ef;
+  border-radius: 20px;
+  overflow: hidden;
+  margin: 20px auto;
+  max-width: 500px;
+}
+
+.fill {
+  height: 100%;
+  width: 0;
+  background: #d62e75;
+  transition: width .25s;
+}
+
+.hearts {
+  font-size: 29px;
+  min-height: 40px;
+  letter-spacing: 5px;
+  overflow-wrap: anywhere;
+}
+
+.status {
+  min-height: 30px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #6b2b65;
+}
+
+.small {
+  font-size: 14px;
+  color: #6d6070;
+}
+
+.sparkle { font-size: 55px; }
+
+@media(max-width:500px) {
+  .app { padding: 18px; }
+  body { padding: 8px; }
+}
+</style>
+</head>
+
+<body>
+
+<main class="app">
+
+<div class="grade">FIRST GRADE</div>
+
+<h1>❤️ Heart Word Heroes ❤️</h1>
+
+<p class="subtitle">
+  Look at the word. Type the word. Earn hearts!
+</p>
+
+<section id="menu">
+  <h2>Choose a round!</h2>
+  <div class="choices" id="choices"></div>
+  <p class="small">
+    No timer. No pressure. Just do your best!
+  </p>
+</section>
+
+<section id="play" class="hidden">
+
+  <p id="roundName"></p>
+
+  <div class="progress">
+    <div class="fill" id="fill"></div>
+  </div>
+
+  <p id="count"></p>
+
+  <div class="word" id="word"></div>
+
+  <button class="secondary" id="hear" type="button">
+    🔊 Hear It
+  </button>
+
+  <p class="prompt">Type the word:</p>
+
+  <input
+    class="entry"
+    id="entry"
+    type="text"
+    autocomplete="off"
+    autocapitalize="off"
+    spellcheck="false"
+    aria-label="Type the heart word"
+  >
+
+  <p class="status" id="status" aria-live="polite"></p>
+
+  <div class="hearts" id="hearts"></div>
+
+  <div class="controls">
+    <button id="next" class="hidden" type="button">
+      Next Word ➜
+    </button>
+
+    <button class="soft" id="back" type="button">
+      Choose Rounds
+    </button>
+  </div>
+
+</section>
+
+<section id="finish" class="hidden">
+
+  <div class="sparkle">🎉❤️🎉</div>
+
+  <h2>You are a Heart Word Hero!</h2>
+
+  <p id="result"></p>
+
+  <div class="controls">
+    <button id="again">
+      Play This Round Again
+    </button>
+
+    <button class="secondary" id="allRounds">
+      Choose Rounds
+    </button>
+  </div>
+
+</section>
+
+</main>
+
+<script>
+
+// First Grade UFLI Heart Words
+// 32 words divided into 8 rounds of 4.
+
+const rounds = [
+  {
+    name: 'Round 1 · Getting Started',
+    words: ['your', 'want', 'go', 'no']
+  },
+  {
+    name: 'Round 2 · Word Stars',
+    words: ['so', 'goes', 'says', 'she']
+  },
+  {
+    name: 'Round 3 · Keep Going',
+    words: ['we', 'they', 'their', 'were']
+  },
+  {
+    name: 'Round 4 · Super Readers',
+    words: ['talk', 'walk', 'could', 'would']
+  },
+  {
+    name: 'Round 5 · Heart Power',
+    words: ['should', 'or', 'for', 'there']
+  },
+  {
+    name: 'Round 6 · Word Champions',
+    words: ['where', 'who', 'by', 'my']
+  },
+  {
+    name: 'Round 7 · Almost There',
+    words: ['one', 'once', 'two', 'does']
+  },
+  {
+    name: 'Round 8 · Heart Word Heroes',
+    words: ['many', 'any', 'been', 'into']
+  },
+  {
+    name: 'Practice All 32 Words',
+    words: [
+      'your', 'want', 'go', 'no',
+      'so', 'goes', 'says', 'she',
+      'we', 'they', 'their', 'were',
+      'talk', 'walk', 'could', 'would',
+      'should', 'or', 'for', 'there',
+      'where', 'who', 'by', 'my',
+      'one', 'once', 'two', 'does',
+      'many', 'any', 'been', 'into'
+    ]
+  }
+];
+
+const $ = id => document.getElementById(id);
+
+let active = 0;
+let index = 0;
+let completed = false;
+
+function show(section) {
+  ['menu', 'play', 'finish'].forEach(id => {
+    $(id).classList.toggle('hidden', id !== section);
+  });
+}
+
+rounds.forEach((round, n) => {
+  const button = document.createElement('button');
+  button.textContent = round.name;
+  button.onclick = () => start(n);
+  $('choices').appendChild(button);
+});
+
+function start(n) {
+  active = n;
+  index = 0;
+  show('play');
+  draw();
+}
+
+function draw() {
+  completed = false;
+
+  const round = rounds[active];
+
+  $('roundName').textContent = round.name;
+
+  $('count').textContent =
+    `Word ${index + 1} of ${round.words.length}`;
+
+  $('word').textContent = round.words[index];
+
+  $('entry').value = '';
+  $('entry').disabled = false;
+  $('entry').className = 'entry';
+
+  $('status').textContent = '';
+  $('next').classList.add('hidden');
+
+  $('fill').style.width =
+    `${index / round.words.length * 100}%`;
+
+  $('hearts').textContent = '❤️'.repeat(index);
+
+  $('entry').focus();
+}
+
+function check() {
+  if (completed) return;
+
+  const expected = rounds[active].words[index];
+
+  // Uppercase and lowercase are both accepted.
+  const typed = $('entry').value.toLowerCase();
+
+  if (typed === expected.toLowerCase()) {
+    completed = true;
+
+    $('entry').classList.add('good');
+    $('entry').disabled = true;
+
+    $('status').textContent =
+      'Great job! You earned a heart! ❤️';
+
+    $('hearts').textContent =
+      '❤️'.repeat(index + 1);
+
+    $('fill').style.width =
+      `${(index + 1) /
+      rounds[active].words.length * 100}%`;
+
+    $('next').textContent =
+      index === rounds[active].words.length - 1
+        ? 'Celebrate! 🎉'
+        : 'Next Word ➜';
+
+    $('next').classList.remove('hidden');
+    $('next').focus();
+
+  } else {
+    $('status').textContent =
+      typed.length
+        ? 'Keep trying! You can fix it.'
+        : '';
+  }
+}
+
+$('entry').addEventListener('input', check);
+
+$('entry').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && completed) {
+    e.preventDefault();
+    advance();
+  }
+});
+
+function advance() {
+  if (!completed) return;
+
+  index++;
+
+  if (index >= rounds[active].words.length) {
+    $('result').textContent =
+      `You typed ${rounds[active].words.length} heart words!`;
+
+    show('finish');
+  } else {
+    draw();
+  }
+}
+
+$('next').onclick = advance;
+
+// Audio pronunciation
+function speak() {
+  if (!('speechSynthesis' in window)) {
+    $('status').textContent =
+      'Audio is not available in this browser.';
+    return;
+  }
+
+  window.speechSynthesis.cancel();
+
+  const word = rounds[active].words[index];
+
+  const utterance =
+    new SpeechSynthesisUtterance(word);
+
+  utterance.lang = 'en-US';
+  utterance.rate = 0.75;
+
+  window.speechSynthesis.speak(utterance);
+}
+
+$('hear').onclick = speak;
+
+$('back').onclick = () => {
+  if ('speechSynthesis' in window) {
+    speechSynthesis.cancel();
+  }
+  show('menu');
+};
+
+$('again').onclick = () => start(active);
+
+$('allRounds').onclick = () => show('menu');
+
+</script>
+
+</body>
+</html>
